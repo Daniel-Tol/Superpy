@@ -47,6 +47,7 @@ description="Buy products, sell products, change time and report various data of
 parser.add_argument("--advance_time", type=int, help="Advances days by number count. Requires number.")
 parser.add_argument("--reverse_time", type=int, help="Reverses days by number count. Requires number.")
 parser.add_argument("--correct_time", action="store_true", help="Changes date to current official date. No value needed.")
+parser.add_argument("--set_time", type=validate_specific_date, help="Set a specific date. Data format is 'YYYY-MM-DD'.")
 subparsers = parser.add_subparsers(dest="command")
 
 # Subparser buy
@@ -60,7 +61,6 @@ buy_parser.add_argument("--amount", type=int, required=True, help="The amount of
 sell_parser =  subparsers.add_parser("sell", help="Sell products. Requires arguments are '--product_name', '--price', '--expiration_date' and '--amount'.")
 sell_parser.add_argument("--product_name", type=str, required=True, help="Name of the product. Use underscore for multiple words.")
 sell_parser.add_argument("--price", type=float, required=True, help="Requires number and accepts number after decimal point.")
-sell_parser.add_argument("--expiration_date", type=validate_specific_date, required=True, help="Expiration date of the product. Data format is 'YYYY-MM-DD'.")
 sell_parser.add_argument("--amount", type=int, required=True, help="The amount of the product to sell. Requires number.")
 
 # Subparser report
@@ -111,23 +111,27 @@ profit_parser.add_argument("--end_date", type=validate_specific_date, help="End 
 # Parse args
 args = parser.parse_args()
 
+# Open date txt
+with open("date.txt", "r") as txt_file:
+    time = txt_file.read()
+
 # Change date
 if args.advance_time:
     with open("date.txt", "w") as txt_file:
-        txt_file.write(str(date.today() + timedelta(args.advance_time)))
+        txt_file.write(str(validate_specific_date(time) + timedelta(args.advance_time)))
     print("OK")
 if args.reverse_time:
     with open("date.txt", "w") as txt_file:
-        txt_file.write(str(date.today() - timedelta(args.reverse_time)))
+        txt_file.write(str(validate_specific_date(time) - timedelta(args.reverse_time)))
     print("OK")
 if args.correct_time:
     with open("date.txt", "w") as txt_file:
         txt_file.write(str(date.today()))
     print("OK")
-
-# Open date txt
-with open("date.txt", "r") as txt_file:
-    time = txt_file.read()
+if args.set_time:
+    with open("date.txt", "w") as txt_file:
+        txt_file.write(str(args.set_time))
+    print("OK")
 
 # Date vars
 todays_date = datetime.strptime(time, "%Y-%m-%d").date()
@@ -141,10 +145,7 @@ if args.command == "buy":
 
 # Calls sell product function
 if args.command == "sell":
-    if args.expiration_date < todays_date:
-        print("ERROR: Can't sell expired products!")
-    else:
-        sell_product(args.product_name,args.price,args.expiration_date,args.amount,todays_date)
+    sell_product(args.product_name,args.price,args.amount,todays_date)
 
 # Calls inventory functions based on selected dates
 if args.command == "inventory":

@@ -4,7 +4,7 @@ import csv
 
 
 # Function sell product
-def sell_product(product_name,price,expiration_date,amount,todays_date):
+def sell_product(product_name,price,amount,todays_date):
     list_sell = list()
     product_amount = amount
 
@@ -14,7 +14,8 @@ def sell_product(product_name,price,expiration_date,amount,todays_date):
         next(csv_file)
         for row_bought in csv_bought:
             buy_date = datetime.strptime(row_bought[2], "%Y-%m-%d").date()
-            if row_bought[1] == str.title(product_name).replace("_", " ") and row_bought[4] == str(expiration_date) and buy_date <= todays_date and product_amount != 0:
+            expiration_date = datetime.strptime(row_bought[4], "%Y-%m-%d").date()
+            if row_bought[1] == str.title(product_name).replace("_", " ") and buy_date <= todays_date and expiration_date > todays_date and product_amount != 0:
                 combine_amount = 0
 
                 # Increments combine amount when more than one row has the same id
